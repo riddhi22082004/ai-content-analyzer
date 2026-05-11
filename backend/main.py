@@ -1,43 +1,27 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from fastapi.middleware.cors import (
-    CORSMiddleware
-)
-
-from app.api.routes import router
-
-
-app = FastAPI(
-    title="AI Website Intelligence API"
-)
-
-
-# CORS
+app = FastAPI()
 
 app.add_middleware(
-
     CORSMiddleware,
-
     allow_origins=["*"],
-
     allow_credentials=True,
-
     allow_methods=["*"],
-
     allow_headers=["*"],
 )
 
-
-# ROUTES
-
-app.include_router(router)
-
-
 @app.get("/")
-def root():
+def home():
+    return {"message": "running"}
 
-    return {
+@app.post("/analyze")
+def analyze(data: dict):
+    text = data.get("text", "").lower()
 
-        "message":
-        "AI Website Intelligence API Running"
-    }
+    if "good" in text:
+        return {"result": "Positive"}
+    elif "bad" in text:
+        return {"result": "Negative"}
+    else:
+        return {"result": "Neutral"}
