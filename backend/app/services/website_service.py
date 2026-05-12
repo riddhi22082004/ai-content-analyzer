@@ -1,104 +1,105 @@
 from app.scraper.fetcher import fetch_website
+from app.scraper.parser import parse_website
 
-from app.utils.trust_score import (
-    calculate_trust_score
-)
+from app.analyzer.llm_engine import analyze_with_ai
+from app.analyzer.trust_engine import analyze_trust
 
-from app.services.orchestrator import (
-    AIOrchestrator
-)
+
+SUPPORTED_BLOCKED_DOMAINS = [
+    "amazon.",
+    "flipkart.",
+    "myntra.",
+    "facebook.",
+    "instagram.",
+    "whatsapp."
+]
 
 
 def process_website(url):
 
-    # STEP 1 — SCRAPE WEBSITE
-    scraped_data = fetch_website(url)
+    try:
 
-    if scraped_data.get("error"):
+        lowered = url.lower()
+
+        for blocked in SUPPORTED_BLOCKED_DOMAINS:
+
+            if blocked in lowered:
+
+                return {
+                    "success": False,
+                    "error": (
+                        "This website blocks automated scraping "
+                        "or requires authentication."
+                    )
+                }
+
+        # FETCH WEBSITE
+        html = fetch_website(url)
+
+        if not html:
+
+            return {
+                "success": False,
+                "error": "Failed to fetch website content."
+            }
+
+        # PARSE WEBSITE
+        parsed_data = parse_website(html)
+
+        if not parsed_data:
+
+            return {
+                "success": False,
+                "error": "Failed to parse website."
+            }
+
+        # AI ANALYSIS
+        ai_analysis = analyze_with_ai(
+            parsed_data
+        )
+
+        # TRUST ANALYSIS
+        trust_analysis = analyze_trust(
+            url,
+            parsed_data
+        )
 
         return {
-            "success": False,
-            "error": scraped_data["error"]
+
+            "success": True,
+
+            "url": url,
+
+            "metadata": {
+
+                "title":
+                parsed_data.get(
+                    "title",
+                    ""
+                ),
+
+                "description":
+                parsed_data.get(
+                    "description",
+                    ""
+                )
+            },
+
+            "analysis":
+            ai_analysis,
+
+            "trust_analysis":
+            trust_analysis,
+
+            "pages_crawled": [url]
         }
 
-    # STEP 2 — AI ANALYSIS
-    orchestrator = AIOrchestrator()
+    except Exception as e:
 
-    analysis = orchestrator.generate(
-        scraped_data
-    )
+        return {
 
-    # STEP 3 — TRUST ANALYSIS
-    trust_analysis = calculate_trust_score({
+            "success": False,
 
-        "url": url,
-
-        "description":
-        scraped_data.get(
-            "description",
-            ""
-        ),
-
-        "content":
-        scraped_data.get(
-            "content",
-            ""
-        ),
-
-        "headings":
-        scraped_data.get(
-            "headings",
-            []
-        ),
-
-        "pages_crawled":
-        scraped_data.get(
-            "pages_crawled",
-            []
-        )
-    })
-
-    # DEBUG
-    print("AI ANALYSIS:", analysis)
-
-    print(
-        "TRUST ANALYSIS:",
-        trust_analysis
-    )
-
-    print("TRUST ANALYSIS VALUE:")
-    print(trust_analysis)
-
-    # STEP 4 — FINAL RESPONSE
-    return {
-
-        "success": True,
-
-        "url": url,
-
-        "metadata": {
-
-            "title":
-            scraped_data.get(
-                "title",
-                ""
-            ),
-
-            "description":
-            scraped_data.get(
-                "description",
-                ""
-            )
-        },
-
-        "analysis": analysis,
-
-        "trust_analysis":
-        trust_analysis,
-
-        "pages_crawled":
-        scraped_data.get(
-            "pages_crawled",
-            []
-        )
-    }
+            "error":
+            str(e)
+        }

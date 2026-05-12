@@ -1,430 +1,120 @@
 import { useState } from "react";
 
 import SearchBar from "../components/SearchBar";
-import TrustScoreCard from "../components/TrustScoreCard";
-import AnalysisCard from "../components/AnalysisCard";
+import LoadingScreen from "../components/LoadingScreen";
+import ErrorMessage from "../components/ErrorMessage";
 
+import MetadataCard from "../components/MetadataCard";
+import AnalysisCard from "../components/AnalysisCard";
+import TrustScoreCard from "../components/TrustScoreCard";
 import FeaturesCard from "../components/FeaturesCard";
-import RiskFlagsCard from "../components/RiskFlagsCard";
 import InsightListCard from "../components/InsightListCard";
+import RiskFlagsCard from "../components/RiskFlagsCard";
+import PagesCard from "../components/PagesCard";
 
 import { analyzeWebsite } from "../api/analyzer";
 
-
 const Home = () => {
-
   const [loading, setLoading] = useState(false);
-
+  const [error, setError] = useState("");
   const [data, setData] = useState(null);
 
-  const [error, setError] = useState("");
-
-
   const handleAnalyze = async (url) => {
-
     try {
-
       setLoading(true);
-
       setError("");
+      setData(null);
 
       const result = await analyzeWebsite(url);
-
-      console.log("API RESULT:", result);
-
       setData(result);
-
-    }
-
-    catch (err) {
-
-      console.error(err);
-
-      setError(
-        "Failed to analyze website."
-      );
-    }
-
-    finally {
-
+    } catch (err) {
+      setError(err?.response?.data?.error || "Failed to analyze website.");
+    } finally {
       setLoading(false);
     }
   };
 
-
   return (
+    <div className="min-h-screen bg-gray-950 text-white px-4 py-10">
+      <div className="max-w-6xl mx-auto">
 
-    <div className="min-h-screen bg-slate-950 text-white">
-
-      <div className="max-w-7xl mx-auto px-6 py-16">
-
-
-        {/* HERO */}
-
-        <div className="text-center mb-16">
-
-          <h1 className="text-6xl font-bold mb-6">
-
-            AI Website Intelligence
-
+        <div className="text-center mb-10">
+          <h1 className="text-5xl font-bold mb-4 text-cyan-400">
+            AI Website Analyzer
           </h1>
-
-          <p className="text-slate-400 text-lg mb-10">
-
-            Analyze trust, structure,
-            reputation, business intelligence,
-            and security signals using AI.
-
-          </p>
-
-          <div className="flex justify-center">
-
-            <SearchBar
-              onAnalyze={handleAnalyze}
-              loading={loading}
-            />
-
-          </div>
-
         </div>
 
+        <SearchBar onAnalyze={handleAnalyze} />
 
-        {/* ERROR */}
-
-        {error && (
-
-          <div
-            className="
-              bg-red-500/10
-              border
-              border-red-500/20
-              text-red-300
-              rounded-2xl
-              p-4
-              mb-8
-            "
-          >
-
-            {error}
-
-          </div>
-        )}
-
-
-        {/* RESULTS */}
+        {loading && <LoadingScreen />}
+        {error && <ErrorMessage message={error} />}
 
         {data && (
+          <div className="space-y-6 mt-8">
 
-          <div className="space-y-8">
-
-
-            {/* TOP SECTION */}
-
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-
-
-              {/* TRUST SCORE */}
-
-              <TrustScoreCard
-                trust={data?.trust_analysis}
-              />
-
-
-              {/* METADATA */}
-
-              <div
-                className="
-                  xl:col-span-2
-                  bg-slate-900
-                  border
-                  border-slate-800
-                  rounded-3xl
-                  p-8
-                "
-              >
-
-                <h2 className="text-2xl font-bold mb-6">
-
-                  Website Metadata
-
-                </h2>
-
-                <div className="space-y-6">
-
-
-                  {/* URL */}
-
-                  <div>
-
-                    <div className="text-slate-400 mb-2">
-
-                      URL
-
-                    </div>
-
-                    <div className="text-blue-400 break-all">
-
-                      {data?.url ||
-                        "No URL"}
-
-                    </div>
-
-                  </div>
-
-
-                  {/* TITLE */}
-
-                  <div>
-
-                    <div className="text-slate-400 mb-2">
-
-                      Title
-
-                    </div>
-
-                    <div className="text-xl">
-
-                      {
-                        data?.metadata?.title
-                        || "No title detected"
-                      }
-
-                    </div>
-
-                  </div>
-
-
-                  {/* DESCRIPTION */}
-
-                  <div>
-
-                    <div className="text-slate-400 mb-2">
-
-                      Description
-
-                    </div>
-
-                    <div className="text-slate-300 leading-7">
-
-                      {
-                        data?.metadata?.description
-                        || "No description detected"
-                      }
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            {/* MAIN ANALYSIS */}
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-
-              <AnalysisCard
-                title="Overview"
-                content={
-                  data?.analysis?.overview
-                }
-              />
-
-              <AnalysisCard
-                title="Purpose"
-                content={
-                  data?.analysis?.purpose
-                }
-              />
-
-              <AnalysisCard
-                title="History"
-                content={
-                  data?.analysis?.history
-                }
-              />
-
-              <AnalysisCard
-                title="Final Verdict"
-                content={
-                  data?.analysis?.final_verdict
-                }
-              />
-
-            </div>
-
-
-            {/* FEATURES */}
-
-            <FeaturesCard
-              features={
-                data?.analysis?.key_features || []
-              }
+            <MetadataCard
+              metadata={data.metadata}
+              url={data.url}
             />
 
-
-            {/* BUSINESS INFO */}
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-
-              <AnalysisCard
-                title="Target Audience"
-                content={
-                  data?.analysis?.target_audience
-                }
-              />
-
-              <AnalysisCard
-                title="Business Model"
-                content={
-                  data?.analysis?.business_model
-                }
-              />
-
-            </div>
-
-
-            {/* STRENGTHS + WEAKNESSES */}
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-
-              <InsightListCard
-                title="Strengths"
-                items={
-                  data?.analysis?.strengths || []
-                }
-                type="positive"
-              />
-
-              <InsightListCard
-                title="Weaknesses"
-                items={
-                  data?.analysis?.weaknesses || []
-                }
-                type="negative"
-              />
-
-            </div>
-
-
-            {/* REPUTATION */}
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-
-              <AnalysisCard
-                title="Ratings & Reputation"
-                content={
-                  data?.analysis?.ratings_reputation
-                }
-              />
-
-              <AnalysisCard
-                title="Reviews Summary"
-                content={
-                  data?.analysis?.reviews_summary
-                }
-              />
-
-            </div>
-
-
-            {/* TRUST & SAFETY */}
+            <TrustScoreCard
+              trust={data.trust_analysis}
+            />
 
             <AnalysisCard
-              title="Trust & Safety"
-              content={
-                data?.analysis?.trust_safety
-              }
+              analysis={data.analysis}
             />
-
-
-            {/* RISK FLAGS */}
-
-            <RiskFlagsCard
-              risks={
-                data?.trust_analysis?.risk_flags || []
-              }
-            />
-
-
-            {/* POSITIVE SIGNALS */}
 
             <InsightListCard
-              title="Positive Signals"
-              items={
-                data?.trust_analysis?.positive_signals || []
-              }
-              type="positive"
+              title="Overview"
+              items={data.analysis?.overview ? [data.analysis.overview] : []}
             />
 
+            <InsightListCard
+              title="Purpose"
+              items={data.analysis?.purpose ? [data.analysis.purpose] : []}
+            />
 
-            {/* PAGES ANALYZED */}
+            <InsightListCard
+              title="History"
+              items={data.analysis?.history ? [data.analysis.history] : []}
+            />
 
-            <div
-              className="
-                bg-slate-900
-                border
-                border-slate-800
-                rounded-3xl
-                p-8
-              "
-            >
+            {/* ONLY ONE TIME */}
+            <FeaturesCard
+              features={data.analysis?.key_features || []}
+            />
 
-              <h2 className="text-2xl font-bold mb-6">
+            <InsightListCard
+              title="Ratings & Reputation"
+              items={data.analysis?.ratings_reputation ? [data.analysis.ratings_reputation] : []}
+            />
 
-                Pages Analyzed
+            <InsightListCard
+              title="Reviews Summary"
+              items={data.analysis?.reviews_summary ? [data.analysis.reviews_summary] : []}
+            />
 
-              </h2>
+            <InsightListCard
+              title="Trust & Safety"
+              items={data.analysis?.trust_safety ? [data.analysis.trust_safety] : []}
+            />
 
-              <div className="space-y-4">
+            <InsightListCard
+              title="Final Verdict"
+              items={data.analysis?.final_verdict ? [data.analysis.final_verdict] : []}
+            />
 
-                {
-                  data?.pages_crawled?.length > 0
-                  ? (
+            <RiskFlagsCard
+              risks={data.trust_analysis?.risk_flags || []}
+            />
 
-                      data.pages_crawled.map(
-                        (page, index) => (
-
-                          <div
-                            key={index}
-                            className="
-                              p-4
-                              rounded-2xl
-                              bg-slate-800
-                              text-slate-300
-                              break-all
-                            "
-                          >
-
-                            {page}
-
-                          </div>
-                        )
-                      )
-
-                    )
-                  : (
-
-                      <div className="text-slate-400">
-
-                        No pages analyzed
-
-                      </div>
-                    )
-                }
-
-              </div>
-
-            </div>
-
+            <PagesCard 
+              pages={data.pages_crawled || []} 
+            />
           </div>
         )}
-
       </div>
-
     </div>
   );
 };

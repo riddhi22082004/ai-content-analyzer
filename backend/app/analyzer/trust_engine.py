@@ -1,51 +1,37 @@
 from urllib.parse import urlparse
 
 
-SUSPICIOUS_KEYWORDS = [
-    "guaranteed money",
-    "quick rich",
-    "100% profit",
-    "free cash",
-    "instant earnings",
-    "double your money",
-    "risk free investment"
-]
+def analyze_trust(url, metadata):
 
-
-def calculate_trust_score(data: dict):
-
-    score = 60
+    score = 50
 
     positive_signals = []
 
     risk_flags = []
 
-    url = data.get("url", "")
+    parsed = urlparse(url)
 
-    description = data.get(
+    domain = parsed.netloc.lower()
+
+    description = metadata.get(
         "description",
         ""
-    ).lower()
+    )
 
-    content = data.get(
+    content = metadata.get(
         "content",
         ""
+    )
+
+    combined = (
+        description + " " + content
     ).lower()
 
-    pages = data.get(
-        "pages_crawled",
-        []
-    )
-
-    headings = data.get(
-        "headings",
-        []
-    )
-
     # HTTPS
-    if url.startswith("https://"):
 
-        score += 10
+    if parsed.scheme == "https":
+
+        score += 15
 
         positive_signals.append(
             "Uses HTTPS encryption"
@@ -53,53 +39,30 @@ def calculate_trust_score(data: dict):
 
     else:
 
-        score -= 15
+        score -= 20
 
         risk_flags.append(
-            "Website does not use HTTPS"
+            "Website is not secured with HTTPS"
         )
 
-    # ABOUT PAGE
-    if any(
-        "about" in p.lower()
-        for p in pages
-    ):
+    # VALID DOMAIN
 
-        score += 8
+    if "." in domain:
+
+        score += 5
 
         positive_signals.append(
-            "About page detected"
+            "Valid domain structure"
         )
 
-    # CONTACT PAGE
-    if any(
-        "contact" in p.lower()
-        for p in pages
-    ):
+    # DESCRIPTION QUALITY
 
-        score += 8
-
-        positive_signals.append(
-            "Contact page detected"
-        )
-
-    # CONTENT QUALITY
-    content_length = len(content)
-
-    if content_length > 5000:
+    if len(description) > 60:
 
         score += 10
 
         positive_signals.append(
-            "Rich website content"
-        )
-
-    elif content_length > 2000:
-
-        score += 5
-
-        positive_signals.append(
-            "Moderate content availability"
+            "Detailed website metadata found"
         )
 
     else:
@@ -107,93 +70,122 @@ def calculate_trust_score(data: dict):
         score -= 5
 
         risk_flags.append(
-            "Limited textual content"
+            "Weak or limited metadata"
         )
 
-    # METADATA QUALITY
-    if len(description) > 80:
+    # CONTENT QUALITY
 
-        score += 5
+    content_length = len(content)
+
+    if content_length > 3000:
+
+        score += 15
 
         positive_signals.append(
-            "Detailed metadata description"
+            "Substantial website content detected"
         )
 
-    elif len(description) < 20:
+    elif content_length > 1000:
 
-        score -= 5
+        score += 8
+
+        positive_signals.append(
+            "Moderate website content detected"
+        )
+
+    else:
+
+        score -= 10
 
         risk_flags.append(
-            "Weak metadata description"
+            "Very limited website content"
         )
 
-    # STRUCTURED HEADINGS
-    if len(headings) > 5:
+    # TRUSTED DOMAINS
 
-        score += 5
+    trusted_domains = [
+        "github.com",
+        "google.com",
+        "microsoft.com",
+        "openai.com",
+        "netflix.com",
+        "amazon.com",
+        "apple.com"
+    ]
+
+    if any(td in domain for td in trusted_domains):
+
+        score += 20
 
         positive_signals.append(
-            "Structured page headings detected"
+            "Recognized globally trusted platform"
         )
 
-    # SUSPICIOUS KEYWORDS
-    detected_keywords = []
+    # SUSPICIOUS WORDS
 
-    for keyword in SUSPICIOUS_KEYWORDS:
+    suspicious_words = [
+        "free money",
+        "win cash",
+        "hack",
+        "crack",
+        "casino",
+        "adult",
+        "betting",
+        "cheat"
+    ]
 
-        if keyword in content:
-            detected_keywords.append(keyword)
+    found_suspicious = False
 
-    if detected_keywords:
+    for word in suspicious_words:
 
-        penalty = min(
-            len(detected_keywords) * 10,
-            30
-        )
+        if word in combined:
 
-        score -= penalty
+            found_suspicious = True
+
+            break
+
+    if found_suspicious:
+
+        score -= 25
 
         risk_flags.append(
-            f"Suspicious phrases detected: "
-            f"{', '.join(detected_keywords)}"
+            "Suspicious or risky keywords detected"
         )
 
-    # DOMAIN STRUCTURE
-    parsed = urlparse(url)
+    # DOMAIN LENGTH
 
-    domain = parsed.netloc
+    if len(domain) > 35:
 
-    if "." in domain and len(domain) > 5:
+        score -= 10
 
-        score += 4
-
-        positive_signals.append(
-            "Structured domain detected"
+        risk_flags.append(
+            "Unusually long domain name"
         )
 
-    # NORMALIZE
-    score = max(0, min(score, 100))
+    # FINAL LIMITS
+
+    score = max(
+        5,
+        min(score, 100)
+    )
 
     # TRUST LEVEL
-    if score >= 85:
-        trust_level = "Very High"
 
-    elif score >= 70:
+    if score >= 85:
+
         trust_level = "High"
 
-    elif score >= 50:
+    elif score >= 60:
+
         trust_level = "Medium"
 
     else:
+
         trust_level = "Low"
 
     return {
-
         "trust_score": score,
-
         "trust_level": trust_level,
-
         "positive_signals": positive_signals,
-
         "risk_flags": risk_flags
     }

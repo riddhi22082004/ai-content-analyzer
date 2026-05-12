@@ -1,45 +1,13 @@
 # Python
-.venv
-__pycache__
-*.pyc
-
-# Environment
-.env
-
-# Node
-node_modules
-dist
-dist-ssr
-
-# Logs
-logs
-*.log
-
-# VS Code
-.vscode
-
-# OS
-.DS_Store
-Thumbs.db
-
-
-
-# Python
-venv/
-.venv/
-backend/venv/
 __pycache__/
 *.pyc
-
-# Env files
+.venv/
+venv/
 .env
 
 # Node
 node_modules/
-
-# Build
 dist/
-build/
 
 # Logs
 *.log

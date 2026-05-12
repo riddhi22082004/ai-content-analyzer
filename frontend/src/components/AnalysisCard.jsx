@@ -1,27 +1,34 @@
-const AnalysisCard = ({ title, content }) => {
+export default function AnalysisCard({ data }) {
+
+  if (!data) return null
 
   return (
+    <div className='bg-slate-800 p-6 rounded-xl'>
 
-    <div
-      className="
-        bg-slate-900
-        border
-        border-slate-800
-        rounded-3xl
-        p-6
-      "
-    >
+      <h2 className='text-2xl font-bold mb-4'>
+        AI Analysis
+      </h2>
 
-      <h3 className="text-xl font-semibold mb-4">
-        {title}
-      </h3>
+      <div className='space-y-4'>
 
-      <p className="text-slate-300 leading-7">
-        {content}
-      </p>
+        <p>
+          <strong>Overview:</strong>
+          {' '}
+          {data.overview}
+        </p>
 
+        <p>
+          <strong>Purpose:</strong>
+          {' '}
+          {data.purpose}
+        </p>
+
+        <p>
+          <strong>Final Verdict:</strong>
+          {' '}
+          {data.final_verdict}
+        </p>
+      </div>
     </div>
-  );
-};
-
-export default AnalysisCard;
+  )
+}

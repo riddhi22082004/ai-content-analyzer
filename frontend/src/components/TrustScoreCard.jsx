@@ -1,50 +1,45 @@
 const TrustScoreCard = ({ trust }) => {
 
-  const score = trust?.trust_score || 0;
-
-  const level = trust?.trust_level || "Unknown";
-
-  let color = "text-red-500";
-
-  if (score >= 80) {
-    color = "text-green-500";
-  }
-
-  else if (score >= 50) {
-    color = "text-yellow-400";
-  }
-
   return (
 
     <div
       className="
         bg-slate-900
-        rounded-3xl
-        p-8
         border
         border-slate-800
-        shadow-xl
+        rounded-3xl
+        p-6
       "
     >
 
       <h2 className="text-2xl font-bold mb-6">
-        Trust Score
+        Trust Analysis
       </h2>
 
-      <div className="flex flex-col items-center">
+      <div className="space-y-5">
 
-        <div
-          className={`
-            text-7xl
-            font-bold
-            ${color}
-          `}
-        >
-          {score}
+        <div>
+
+          <p className="text-slate-400">
+            Trust Score
+          </p>
+
+          <h3 className="text-5xl font-bold text-cyan-400">
+            {trust?.trust_score || 0}
+          </h3>
+
         </div>
 
-        <div className="text-xl mt-3 text-slate-300">
-          {level}
+        <div>
+
+          <p className="text-slate-400">
+            Trust Level
+          </p>
+
+          <p className="text-xl font-semibold text-white">
+            {trust?.trust_level || "Unknown"}
+          </p>
+
         </div>
 
       </div>
